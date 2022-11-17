@@ -1,7 +1,6 @@
 package main
 
 import (
-	"agones.dev/agones/pkg/apis"
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	allocatorv1 "agones.dev/agones/pkg/apis/allocation/v1"
 	"agones.dev/agones/pkg/client/clientset/versioned"
@@ -19,10 +18,10 @@ import (
 	"k8s.io/client-go/util/homedir"
 	"k8s.io/utils/env"
 	"log"
-	"math"
 	"net"
 	"path/filepath"
 	"server-discovery-go/proto/service/server_discovery"
+	"server-discovery-go/selectors"
 )
 
 const (
@@ -44,91 +43,39 @@ type serverDiscoveryServer struct {
 }
 
 func (s *serverDiscoveryServer) GetSuggestedLobbyServer(ctx context.Context, _ *empty.Empty) (*server_discovery.LobbyServer, error) {
-	allocationRequest := &allocatorv1.GameServerAllocation{
-		Spec: allocatorv1.GameServerAllocationSpec{
-			Scheduling: apis.Packed,
-			Selectors: []allocatorv1.GameServerSelector{
-				{
-					LabelSelector: v1.LabelSelector{
-						MatchLabels: map[string]string{"agones.dev/fleet": "lobby"},
-					},
-					GameServerState: &allocatedState,
-					Players: &allocatorv1.PlayerSelector{
-						MinAvailable: 1,
-						MaxAvailable: math.MaxInt64,
-					},
-				},
-				{
-					LabelSelector: v1.LabelSelector{
-						MatchLabels: map[string]string{"agones.dev/fleet": "lobby"},
-					},
-					GameServerState: &readyState,
-				},
-			},
-		},
-	}
-
-	allocation, err := agonesClient.AllocationV1().GameServerAllocations(namespace).Create(ctx, allocationRequest, v1.CreateOptions{})
+	allocation, err := agonesClient.AllocationV1().GameServerAllocations(namespace).Create(ctx, selectors.GetLobbySelector(1), v1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
-	allocationState := allocation.Status.State
 
-	if allocationState == "UnAllocated" {
-		return nil, status.Error(codes.NotFound, "No available lobby servers")
+	connectableServer, err := createConnectableServer("lobby", allocation.Status)
+	if err != nil {
+		return nil, err
 	}
 
-	allocationStatus := allocation.Status
 	return &server_discovery.LobbyServer{
-		ConnectableServer: &server_discovery.ConnectableServer{
-			Id:      allocationStatus.GameServerName,
-			Address: allocationStatus.Address,
-			Port:    uint32(allocationStatus.Ports[0].Port),
-		},
+		ConnectableServer: connectableServer,
 	}, nil
 }
 
 func (s *serverDiscoveryServer) GetSuggestedOtpServer(ctx context.Context, _ *empty.Empty) (*server_discovery.ConnectableServer, error) {
-	allocationRequest := &allocatorv1.GameServerAllocation{
-		Spec: allocatorv1.GameServerAllocationSpec{
-			Scheduling: apis.Packed,
-			Selectors: []allocatorv1.GameServerSelector{
-				{
-					LabelSelector: v1.LabelSelector{
-						MatchLabels: map[string]string{"agones.dev/fleet": "void-otp"},
-					},
-					GameServerState: &allocatedState,
-					Players: &allocatorv1.PlayerSelector{
-						MinAvailable: 1,
-						MaxAvailable: math.MaxInt64,
-					},
-				},
-				{
-					LabelSelector: v1.LabelSelector{
-						MatchLabels: map[string]string{"agones.dev/fleet": "void-otp"},
-					},
-					GameServerState: &readyState,
-				},
-			},
-		},
-	}
-
-	allocation, err := agonesClient.AllocationV1().GameServerAllocations(namespace).Create(ctx, allocationRequest, v1.CreateOptions{})
+	allocation, err := agonesClient.AllocationV1().GameServerAllocations(namespace).Create(ctx, selectors.GetVoidOtpSelector(), v1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
-	allocationState := allocation.Status.State
 
-	if allocationState == "UnAllocated" {
-		return nil, status.Error(codes.NotFound, "No available lobby servers")
+	return createConnectableServer("void-otp", allocation.Status)
+}
+
+func (s *serverDiscoveryServer) GetSuggestedTowerDefenceServer(ctx context.Context, request *server_discovery.TowerDefenceServerRequest) (*server_discovery.ConnectableServer, error) {
+	allocation, err := agonesClient.AllocationV1().GameServerAllocations(namespace).
+		Create(ctx, selectors.GetTowerDefenceSelector(1, request.GetInProgress()), v1.CreateOptions{})
+
+	if err != nil {
+		return nil, err
 	}
 
-	allocationStatus := allocation.Status
-	return &server_discovery.ConnectableServer{
-		Id:      allocationStatus.GameServerName,
-		Address: allocationStatus.Address,
-		Port:    uint32(allocationStatus.Ports[0].Port),
-	}, nil
+	return createConnectableServer("tower-defence-game", allocation.Status)
 }
 
 func createKubernetesConfig() *rest.Config {
@@ -156,6 +103,18 @@ func createKubernetesConfig() *rest.Config {
 	}
 
 	return config
+}
+
+func createConnectableServer(fleetType string, allocation allocatorv1.GameServerAllocationStatus) (*server_discovery.ConnectableServer, error) {
+	if allocation.State == "UnAllocated" {
+		return nil, status.Errorf(codes.NotFound, "No available %s servers", fleetType)
+	}
+
+	return &server_discovery.ConnectableServer{
+		Id:      allocation.GameServerName,
+		Address: allocation.Address,
+		Port:    uint32(allocation.Ports[0].Port),
+	}, nil
 }
 
 func main() {

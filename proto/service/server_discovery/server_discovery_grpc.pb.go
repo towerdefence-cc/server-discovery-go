@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.19.1
-// source: server_discovery.proto
+// source: proto/server_discovery.proto
 
 package server_discovery
 
@@ -25,6 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ServerDiscoveryClient interface {
 	GetSuggestedLobbyServer(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LobbyServer, error)
 	GetSuggestedOtpServer(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ConnectableServer, error)
+	GetSuggestedTowerDefenceServer(ctx context.Context, in *TowerDefenceServerRequest, opts ...grpc.CallOption) (*ConnectableServer, error)
 }
 
 type serverDiscoveryClient struct {
@@ -53,12 +54,22 @@ func (c *serverDiscoveryClient) GetSuggestedOtpServer(ctx context.Context, in *e
 	return out, nil
 }
 
+func (c *serverDiscoveryClient) GetSuggestedTowerDefenceServer(ctx context.Context, in *TowerDefenceServerRequest, opts ...grpc.CallOption) (*ConnectableServer, error) {
+	out := new(ConnectableServer)
+	err := c.cc.Invoke(ctx, "/service.server_discovery.ServerDiscovery/GetSuggestedTowerDefenceServer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServerDiscoveryServer is the server API for ServerDiscovery service.
 // All implementations must embed UnimplementedServerDiscoveryServer
 // for forward compatibility
 type ServerDiscoveryServer interface {
 	GetSuggestedLobbyServer(context.Context, *emptypb.Empty) (*LobbyServer, error)
 	GetSuggestedOtpServer(context.Context, *emptypb.Empty) (*ConnectableServer, error)
+	GetSuggestedTowerDefenceServer(context.Context, *TowerDefenceServerRequest) (*ConnectableServer, error)
 	mustEmbedUnimplementedServerDiscoveryServer()
 }
 
@@ -71,6 +82,9 @@ func (UnimplementedServerDiscoveryServer) GetSuggestedLobbyServer(context.Contex
 }
 func (UnimplementedServerDiscoveryServer) GetSuggestedOtpServer(context.Context, *emptypb.Empty) (*ConnectableServer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSuggestedOtpServer not implemented")
+}
+func (UnimplementedServerDiscoveryServer) GetSuggestedTowerDefenceServer(context.Context, *TowerDefenceServerRequest) (*ConnectableServer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSuggestedTowerDefenceServer not implemented")
 }
 func (UnimplementedServerDiscoveryServer) mustEmbedUnimplementedServerDiscoveryServer() {}
 
@@ -121,6 +135,24 @@ func _ServerDiscovery_GetSuggestedOtpServer_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ServerDiscovery_GetSuggestedTowerDefenceServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TowerDefenceServerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServerDiscoveryServer).GetSuggestedTowerDefenceServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.server_discovery.ServerDiscovery/GetSuggestedTowerDefenceServer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServerDiscoveryServer).GetSuggestedTowerDefenceServer(ctx, req.(*TowerDefenceServerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ServerDiscovery_ServiceDesc is the grpc.ServiceDesc for ServerDiscovery service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -136,7 +168,11 @@ var ServerDiscovery_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetSuggestedOtpServer",
 			Handler:    _ServerDiscovery_GetSuggestedOtpServer_Handler,
 		},
+		{
+			MethodName: "GetSuggestedTowerDefenceServer",
+			Handler:    _ServerDiscovery_GetSuggestedTowerDefenceServer_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "server_discovery.proto",
+	Metadata: "proto/server_discovery.proto",
 }
