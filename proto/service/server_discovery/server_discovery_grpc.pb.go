@@ -38,7 +38,7 @@ func NewServerDiscoveryClient(cc grpc.ClientConnInterface) ServerDiscoveryClient
 
 func (c *serverDiscoveryClient) GetSuggestedLobbyServer(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LobbyServer, error) {
 	out := new(LobbyServer)
-	err := c.cc.Invoke(ctx, "/service.server_discovery.ServerDiscovery/GetSuggestedLobbyServer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedLobbyServer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (c *serverDiscoveryClient) GetSuggestedLobbyServer(ctx context.Context, in 
 
 func (c *serverDiscoveryClient) GetSuggestedOtpServer(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ConnectableServer, error) {
 	out := new(ConnectableServer)
-	err := c.cc.Invoke(ctx, "/service.server_discovery.ServerDiscovery/GetSuggestedOtpServer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedOtpServer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *serverDiscoveryClient) GetSuggestedOtpServer(ctx context.Context, in *e
 
 func (c *serverDiscoveryClient) GetSuggestedTowerDefenceServer(ctx context.Context, in *TowerDefenceServerRequest, opts ...grpc.CallOption) (*ConnectableServer, error) {
 	out := new(ConnectableServer)
-	err := c.cc.Invoke(ctx, "/service.server_discovery.ServerDiscovery/GetSuggestedTowerDefenceServer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedTowerDefenceServer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func _ServerDiscovery_GetSuggestedLobbyServer_Handler(srv interface{}, ctx conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.server_discovery.ServerDiscovery/GetSuggestedLobbyServer",
+		FullMethod: "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedLobbyServer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServerDiscoveryServer).GetSuggestedLobbyServer(ctx, req.(*emptypb.Empty))
@@ -127,7 +127,7 @@ func _ServerDiscovery_GetSuggestedOtpServer_Handler(srv interface{}, ctx context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.server_discovery.ServerDiscovery/GetSuggestedOtpServer",
+		FullMethod: "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedOtpServer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServerDiscoveryServer).GetSuggestedOtpServer(ctx, req.(*emptypb.Empty))
@@ -145,7 +145,7 @@ func _ServerDiscovery_GetSuggestedTowerDefenceServer_Handler(srv interface{}, ct
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.server_discovery.ServerDiscovery/GetSuggestedTowerDefenceServer",
+		FullMethod: "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedTowerDefenceServer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServerDiscoveryServer).GetSuggestedTowerDefenceServer(ctx, req.(*TowerDefenceServerRequest))
@@ -157,7 +157,7 @@ func _ServerDiscovery_GetSuggestedTowerDefenceServer_Handler(srv interface{}, ct
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ServerDiscovery_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "service.server_discovery.ServerDiscovery",
+	ServiceName: "towerdefence.cc.service.server_discovery.ServerDiscovery",
 	HandlerType: (*ServerDiscoveryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

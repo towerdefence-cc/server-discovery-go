@@ -1,5 +1,5 @@
 syntax = "proto3";
-package service.server_discovery;
+package towerdefence.cc.service.server_discovery;
 
 option java_package = "cc.towerdefence.api.service";
 option java_outer_classname = "ServerDiscoveryProto";
