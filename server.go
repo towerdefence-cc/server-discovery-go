@@ -1,7 +1,6 @@
 package main
 
 import (
-	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	allocatorv1 "agones.dev/agones/pkg/apis/allocation/v1"
 	"agones.dev/agones/pkg/client/clientset/versioned"
 	"context"
@@ -33,17 +32,14 @@ var (
 	kubeConfig   = createKubernetesConfig()
 	kubeClient   = kubernetes.NewForConfigOrDie(kubeConfig)
 	agonesClient = versioned.NewForConfigOrDie(kubeConfig)
-
-	allocatedState = agonesv1.GameServerStateAllocated
-	readyState     = agonesv1.GameServerStateReady
 )
 
 type serverDiscoveryServer struct {
 	server_discovery.UnimplementedServerDiscoveryServer
 }
 
-func (s *serverDiscoveryServer) GetSuggestedLobbyServer(ctx context.Context, _ *empty.Empty) (*server_discovery.LobbyServer, error) {
-	allocation, err := agonesClient.AllocationV1().GameServerAllocations(namespace).Create(ctx, selectors.GetLobbySelector(1), v1.CreateOptions{})
+func (s *serverDiscoveryServer) GetSuggestedLobbyServer(ctx context.Context, request *server_discovery.ServerRequest) (*server_discovery.LobbyServer, error) {
+	allocation, err := agonesClient.AllocationV1().GameServerAllocations(namespace).Create(ctx, selectors.GetLobbySelector(request.PlayerCount), v1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +68,7 @@ func (s *serverDiscoveryServer) GetSuggestedTowerDefenceServer(ctx context.Conte
 		Create(ctx, selectors.GetTowerDefenceSelector(1, request.GetInProgress()), v1.CreateOptions{})
 
 	if err != nil {
+		log.Print(err)
 		return nil, err
 	}
 

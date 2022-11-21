@@ -14,7 +14,7 @@ func GetTowerDefenceSelector(playerCount int64, inProgress bool) *allocatorv1.Ga
 		// In game and backfilling
 		selectors = append(selectors, allocatorv1.GameServerSelector{
 			LabelSelector: v1.LabelSelector{
-				MatchLabels: map[string]string{"agones.dev/fleet": "towerdefence-game", "phase": "game", "backfill": "true"},
+				MatchLabels: map[string]string{"agones.dev/fleet": "tower-defence-game", "agones.dev/sdk-phase": "game", "agones.dev/sdk-backfill": "true"},
 			},
 			GameServerState: &AllocatedState,
 			Players: &allocatorv1.PlayerSelector{
@@ -27,7 +27,7 @@ func GetTowerDefenceSelector(playerCount int64, inProgress bool) *allocatorv1.Ga
 	// in lobby and backfilling
 	selectors = append(selectors, allocatorv1.GameServerSelector{
 		LabelSelector: v1.LabelSelector{
-			MatchLabels: map[string]string{"agones.dev/fleet": "towerdefence-game", "phase": "lobby", "backfill": "true"},
+			MatchLabels: map[string]string{"agones.dev/fleet": "tower-defence-game", "agones.dev/sdk-phase": "lobby", "agones.dev/sdk-backfill": "true"},
 		},
 		GameServerState: &AllocatedState,
 		Players: &allocatorv1.PlayerSelector{
@@ -39,7 +39,7 @@ func GetTowerDefenceSelector(playerCount int64, inProgress bool) *allocatorv1.Ga
 	// new game server
 	selectors = append(selectors, allocatorv1.GameServerSelector{
 		LabelSelector: v1.LabelSelector{
-			MatchLabels: map[string]string{"agones.dev/fleet": "towerdefence-game"},
+			MatchLabels: map[string]string{"agones.dev/fleet": "tower-defence-game"},
 		},
 		GameServerState: &ReadyState,
 	})

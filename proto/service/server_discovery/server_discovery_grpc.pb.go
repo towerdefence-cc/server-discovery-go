@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServerDiscoveryClient interface {
-	GetSuggestedLobbyServer(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LobbyServer, error)
+	GetSuggestedLobbyServer(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*LobbyServer, error)
 	GetSuggestedOtpServer(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ConnectableServer, error)
 	GetSuggestedTowerDefenceServer(ctx context.Context, in *TowerDefenceServerRequest, opts ...grpc.CallOption) (*ConnectableServer, error)
 }
@@ -36,7 +36,7 @@ func NewServerDiscoveryClient(cc grpc.ClientConnInterface) ServerDiscoveryClient
 	return &serverDiscoveryClient{cc}
 }
 
-func (c *serverDiscoveryClient) GetSuggestedLobbyServer(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LobbyServer, error) {
+func (c *serverDiscoveryClient) GetSuggestedLobbyServer(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*LobbyServer, error) {
 	out := new(LobbyServer)
 	err := c.cc.Invoke(ctx, "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedLobbyServer", in, out, opts...)
 	if err != nil {
@@ -67,7 +67,7 @@ func (c *serverDiscoveryClient) GetSuggestedTowerDefenceServer(ctx context.Conte
 // All implementations must embed UnimplementedServerDiscoveryServer
 // for forward compatibility
 type ServerDiscoveryServer interface {
-	GetSuggestedLobbyServer(context.Context, *emptypb.Empty) (*LobbyServer, error)
+	GetSuggestedLobbyServer(context.Context, *ServerRequest) (*LobbyServer, error)
 	GetSuggestedOtpServer(context.Context, *emptypb.Empty) (*ConnectableServer, error)
 	GetSuggestedTowerDefenceServer(context.Context, *TowerDefenceServerRequest) (*ConnectableServer, error)
 	mustEmbedUnimplementedServerDiscoveryServer()
@@ -77,7 +77,7 @@ type ServerDiscoveryServer interface {
 type UnimplementedServerDiscoveryServer struct {
 }
 
-func (UnimplementedServerDiscoveryServer) GetSuggestedLobbyServer(context.Context, *emptypb.Empty) (*LobbyServer, error) {
+func (UnimplementedServerDiscoveryServer) GetSuggestedLobbyServer(context.Context, *ServerRequest) (*LobbyServer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSuggestedLobbyServer not implemented")
 }
 func (UnimplementedServerDiscoveryServer) GetSuggestedOtpServer(context.Context, *emptypb.Empty) (*ConnectableServer, error) {
@@ -100,7 +100,7 @@ func RegisterServerDiscoveryServer(s grpc.ServiceRegistrar, srv ServerDiscoveryS
 }
 
 func _ServerDiscovery_GetSuggestedLobbyServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(ServerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func _ServerDiscovery_GetSuggestedLobbyServer_Handler(srv interface{}, ctx conte
 		FullMethod: "/towerdefence.cc.service.server_discovery.ServerDiscovery/GetSuggestedLobbyServer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServerDiscoveryServer).GetSuggestedLobbyServer(ctx, req.(*emptypb.Empty))
+		return srv.(ServerDiscoveryServer).GetSuggestedLobbyServer(ctx, req.(*ServerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
