@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/towerdefence-cc/grpc-api-specs/gen/go/service/server_discovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -19,7 +20,6 @@ import (
 	"log"
 	"net"
 	"path/filepath"
-	"server-discovery-go/proto/service/server_discovery"
 	"server-discovery-go/selectors"
 )
 
