@@ -4,22 +4,17 @@ import (
 	allocatorv1 "agones.dev/agones/pkg/apis/allocation/v1"
 	"agones.dev/agones/pkg/client/clientset/versioned"
 	"context"
-	"flag"
 	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/towerdefence-cc/go-utils/kubeutils"
 	"github.com/towerdefence-cc/grpc-api-specs/gen/go/service/server_discovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
-	"k8s.io/utils/env"
 	"log"
 	"net"
-	"path/filepath"
 	"server-discovery-go/selectors"
 )
 
@@ -29,8 +24,7 @@ const (
 )
 
 var (
-	kubeConfig   = createKubernetesConfig()
-	kubeClient   = kubernetes.NewForConfigOrDie(kubeConfig)
+	kubeConfig   = createKubernetesClient()
 	agonesClient = versioned.NewForConfigOrDie(kubeConfig)
 )
 
@@ -75,33 +69,6 @@ func (s *serverDiscoveryServer) GetSuggestedTowerDefenceServer(ctx context.Conte
 	return createConnectableServer("tower-defence-game", allocation.Status)
 }
 
-func createKubernetesConfig() *rest.Config {
-	var isInCluster = env.GetString("KUBERNETES_SERVICE_HOST", "") != ""
-
-	var config *rest.Config
-	var err error
-
-	if isInCluster {
-		config, err = rest.InClusterConfig()
-	} else {
-		var kubeConfig *string
-		if home := homedir.HomeDir(); home != "" {
-			kubeConfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		} else {
-			kubeConfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		}
-		flag.Parse()
-
-		config, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
-	}
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return config
-}
-
 func createConnectableServer(fleetType string, allocation allocatorv1.GameServerAllocationStatus) (*server_discovery.ConnectableServer, error) {
 	if allocation.State == "UnAllocated" {
 		return nil, status.Errorf(codes.NotFound, "No available %s servers", fleetType)
@@ -115,7 +82,6 @@ func createConnectableServer(fleetType string, allocation allocatorv1.GameServer
 }
 
 func main() {
-	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
@@ -127,4 +93,12 @@ func main() {
 	if err := server.Serve(lis); err != nil {
 		panic(err)
 	}
+}
+
+func createKubernetesClient() *rest.Config {
+	config, err := kubeutils.CreateKubernetesConfig()
+	if err != nil {
+		panic(err)
+	}
+	return config
 }
